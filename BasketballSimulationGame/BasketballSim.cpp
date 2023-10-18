@@ -33,15 +33,15 @@ bool SimShot(){
 
 
 /*********************************************************************
-** Function: GetMoneyBallPosition(<int>, <int>)
+** Function: GetMoneyBallPosition(<int>)
 ** Description: Prompts user to enter which rack is to be their
-                "money-ball" rack. Adds 1's to "pos" based on how
-                many "starry balls" came before it and then returns "pos".
+                "money-ball" rack. Increments "pos" based on # of starry
+                balls before rack.
 ** Parameters: Frequency of "starry balls", number of non-starry ball racks.
 ** Pre-Conditions: Valid parameter types.
 ** Post-Conditions: Value returned of type <int> within 0-NUMROWS.
 *********************************************************************/
-int GetMoneyballPostion (int sFreq, int regRacks) {
+int GetMoneyballPostion (int regRacks) {
 
     int pos = -1;
 
@@ -50,18 +50,27 @@ int GetMoneyballPostion (int sFreq, int regRacks) {
         cin.clear();
         cout << "Where do you want to put your money-ball rack? Enter 1-5: ";
 
-        // Increment pos (+1) every 2
+        // Valid input
         if (cin >> pos && 1 <= pos && pos <= regRacks){
-            
-            int temp = pos - 1;
-            while (temp >= sFreq - 1){
 
-                temp -= sFreq - 1;
-                pos += 1;
+            // increment pos based on # of starry balls before
+            if (pos <= 2){
+
+                cout << endl;
+                return pos - 1;
+            } else if (pos >= 4) {
+
+                cout << endl;
+                return pos + 1;
+            }
+            else {
+
+                cout << endl;
+                return pos;
             }
 
-            cout << endl;
-            return pos - 1;
+            // cout << endl;
+            // return pos - 1;
 
         } else {
 
@@ -146,7 +155,7 @@ int GetPlayers(){
 ** Function: PrintTie(<int>, <int> <int*>, <int>)
 ** Description: Prints out which players tied and with what score.
 ** Parameters: Number of tied players, the point total the players tied with,
-               the array of all players scores, and the number of players in total
+               the array of all players scores, and the number of players in total.
 ** Pre-Conditions: Valid parameter types.
 ** Post-Conditions: None.
 *********************************************************************/
@@ -228,20 +237,20 @@ void PrintWinner(int* scoresArray, int size){
 
 
 /*********************************************************************
-** Function: GenArray(<int>, <int>, <int>)
+** Function: GenArray(<int>, <int>)
 ** Description: Creates a 2D array, fills it with 0's, and returns the pointer.
-** Parameters: Number of rows, number of columns, frequency of starry balls in rack.
+** Parameters: Number of rows, number of columns.
 ** Pre-Conditions: Valid parameter types.
 ** Post-Conditions: Returns value of type <int**>.
 *********************************************************************/
 // Creates new rack array
-int** GenArray(int row, int col, int freq)
+int** GenArray(int row, int col)
 {
     int** arr = new int*[row];
     for (int i = 0; i < row; ++i) {
 
-        // starry ball
-        if (i == freq - 1){
+        // starry balls
+        if (i == 2 || i == 4){
 
             arr[i] = new int[1];
             arr[i][0] = 0;
@@ -262,7 +271,7 @@ int** GenArray(int row, int col, int freq)
 
 
 /*********************************************************************
-** Function: SimRacks(<int>, <int>, <int>, <int>, <int>, <int>, <int>)
+** Function: SimRacks(<int>, <int>, <int>, <int>, <int>, <int>)
 ** Description: Creates a new 2D-array "simulatedRack" using GenArray(), 
                 resets the random seed, goes through "simulatedRack" and
                 uses SimShot() to then decide if the value in "simulatedRack" (0)
@@ -271,15 +280,15 @@ int** GenArray(int row, int col, int freq)
                 "simulatedRack" after every shot has been simulated.
 ** Parameters: Moneyball-rack position, point value for a regular shot make (1),
                point value for moneyball shot make (2), or point value for
-               starry ball make (3).
+               starry ball make (3), array rows, array columns.
 ** Pre-Conditions: SimShot() returns a value of either true/false or 0/1, 
                    GenArray() returns a 2D array, valid parameter types.
 ** Post-Conditions: Returns value of type <int**>.
 *********************************************************************/
-int** SimRacks (int mPos, int reg, int money, int starry, int sFreq, int row, int col) {
+int** SimRacks (int mPos, int reg, int money, int starry, int row, int col) {
     
     // 2D array filled with 0's
-    int** simulatedRack = GenArray(row, col, sFreq);
+    int** simulatedRack = GenArray(row, col);
 
     // reset random seed
     srand(time(NULL));
@@ -291,7 +300,7 @@ int** SimRacks (int mPos, int reg, int money, int starry, int sFreq, int row, in
         for (int k = 0; k < col; k++){
 
             // Starry Shots
-            if ((i + 1) % sFreq == 0){
+            if (i == 2 || i == 4){
                 if (SimShot()){
                     simulatedRack[i][0] = starry;
                 }
@@ -328,18 +337,18 @@ int** SimRacks (int mPos, int reg, int money, int starry, int sFreq, int row, in
 
 
 /*********************************************************************
-** Function: PrintRack(<int**>, <int>, <int>, <int>, <int>, <int>, <int>)
+** Function: PrintRack(<int**>, <int>, <int>, <int>, <int>, <int>)
 ** Description: Prints a single racks results based on the point value held
                 in 2D-array ("rack"), replacing the point value with letter indicators.
                 Adds up total score for rack and returns it.
 ** Parameters: 2D-array of racks, current rack value (0 based),
                point value for a regular shot make (1), point value for moneyball 
-               shot make (2), or point value for starry ball make (3), frequency
-               of starry balls, number of balls in rack.
+               shot make (2), or point value for starry ball make (3),
+               array columns (# balls in regular rack).
 ** Pre-Conditions: Valid parameter types, "rack" columns and "col" are equal.
 ** Post-Conditions: Returns value of type <int>
 *********************************************************************/
-int PrintRack (int** rack, int pos, int reg, int money, int starry, int sFreq, int col) {
+int PrintRack (int** rack, int pos, int reg, int money, int starry, int col) {
 
     string miss = "X ";
     string madeReg = "O ";
@@ -370,7 +379,7 @@ int PrintRack (int** rack, int pos, int reg, int money, int starry, int sFreq, i
                     return starry;
 
                 // miss (not starry)
-                } else if (!((pos + 1) % sFreq == 0)){
+                } else if (!(pos == 2 || pos == 4)){
 
                     cout << miss;
 
@@ -386,36 +395,48 @@ int PrintRack (int** rack, int pos, int reg, int money, int starry, int sFreq, i
 
 
 /*********************************************************************
-** Function: PrintAllRacks(<int**>, <int>, <int>, <int>, <int>, <int>, <int>)
+** Function: PrintAllRacks(<int**>, <int>, <int>, <int>, <int>, <int>)
 ** Description: Titles current rack, prints rack results using PrintRack(),
                 tracks "totalRackPoints", repeats for all racks, and returns
                 "totalRackPoints".
 ** Parameters: 2D-array of racks, 2D-array of racks, current rack value (0 based),
                point value for a regular shot make (1), point value for moneyball 
-               shot make (2), or point value for starry ball make (3), frequency
-               of starry balls, number of racks (including starry balls), number of balls in rack.
+               shot make (2), or point value for starry ball make (3),
+               number of racks (including starry balls), number of balls in rack.
 ** Pre-Conditions: Valid parameter types, "rack" rows and columns are equal
                    to "row" and "col" respectively, PrintRack() returns value of type <int>.
 ** Post-Conditions: Returns value of type <int>.
 *********************************************************************/
-int PrintAllRacks(int** rack, int reg, int money, int starry, int sFreq, int row, int col){
+int PrintAllRacks(int** rack, int reg, int money, int starry, int row, int col){
 
     int totalRackPoints = 0;
 
     for (int i = 0; i < row; ++i) {
 
-        if ((i + 1) % sFreq == 0){
+        if (i == 2 || i == 4){
 
             cout << "Starry: ";
         } else {
 
-            cout << "Rack " << i - (i / sFreq) + 1 << ": ";            
+            cout << "Rack ";
+            
+            // increment based on # of starry balls before
+            if (i <= 2){
+
+                cout << i + 1 << ": ";
+            } else if (i >= 4) {
+
+                cout << i - 1 << ": ";
+            } else {
+
+                cout << i << ": ";
+            }
         }
 
-        int tempCount = PrintRack(rack, i, reg, money, starry, sFreq, col);
+        int tempCount = PrintRack(rack, i, reg, money, starry, col);
 
         // If starry
-        if ((i + 1) % sFreq == 0){
+        if (i == 2 || i == 4){
 
             cout << "        | " << tempCount << " pts" << endl;
             totalRackPoints += tempCount;
@@ -443,10 +464,6 @@ int main() {
     int madeShot_Money = 2;
     int madeShot_Starry = 3;
 
-    // misc vars
-    int numRegRacks = 5;
-    int starryFreq = 3;
-
 
     // GAMELOOP
     do {
@@ -466,13 +483,13 @@ int main() {
             cout << endl << "Player " << player + 1 << ":" << endl;
 
             // get money-ball rack position
-            int moneyballRack = GetMoneyballPostion(starryFreq, numRegRacks);
+            int moneyballRack = GetMoneyballPostion(ARRAYCOLS);
 
             // SIM
-            int** rack = SimRacks(moneyballRack, madeShot_Reg, madeShot_Money, madeShot_Starry, starryFreq, ARRAYROWS, ARRAYCOLS);
+            int** rack = SimRacks(moneyballRack, madeShot_Reg, madeShot_Money, madeShot_Starry, ARRAYROWS, ARRAYCOLS);
 
             // prints sim results and sets player score in array
-            playersArray[player] = PrintAllRacks(rack, madeShot_Reg, madeShot_Money, madeShot_Starry, starryFreq, ARRAYROWS, ARRAYCOLS);
+            playersArray[player] = PrintAllRacks(rack, madeShot_Reg, madeShot_Money, madeShot_Starry, ARRAYROWS, ARRAYCOLS);
             cout << "Total: " << playersArray[player] << " pts" << endl << endl;
 
             // deletes "rack" from heap
